@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery } from "@tanstack/react-query";
-import { UserFragment, User } from "./user"
+import { UserFragment, User } from "../features/user"
 import request from 'graphql-request';
 import { graphql } from "../generated/gql";
 import { GetUsersQuery } from "../generated/gql/graphql";
+import { useLoaderData } from "@remix-run/react";
 
 const getUsersQuery = graphql(`
   query GetUsers {
@@ -13,11 +13,13 @@ const getUsersQuery = graphql(`
     }
   }
 `)
+
+export async function loader() {
+  return request<GetUsersQuery>('http://localhost:8080/v1/graphql', getUsersQuery, {})
+}
+
 export default function Web() {
-  const { data } = useQuery(['users'] as const, () =>
-    request('http://localhost:8080/v1/graphql', getUsersQuery, {})
-  )
-  console.log({data})
+  const data = useLoaderData<typeof loader>();
 
   return (
     <div>
