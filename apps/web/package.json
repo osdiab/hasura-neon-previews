@@ -1,29 +1,39 @@
 {
-  "name": "web",
+  "name": "@hasura-neon-previews/web",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "doppler run -- next dev",
-    "build": "next build",
+    "dev:next": "next dev",
+    "dev:gql": "pnpm build:gql --watch",
+    "dev": "doppler run -- run-p \"dev:*\"",
+    "build:next": "next build",
+    "build:gql": "graphql-codegen --config codegen.ts",
+    "build": "pnpm build:gql && pnpm build:next",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup-env": "doppler setup --no-interactive"
   },
   "dependencies": {
+    "@tanstack/react-query": "^4.20.4",
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.1.0",
     "jsonwebtoken": "^8.5.1",
-    "next": "13.0.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "next": "^13.0.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "zod": "^3.19.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0",
+    "@graphql-codegen/cli": "2.16.1",
+    "@graphql-codegen/client-preset": "1.2.3",
+    "@hasura-neon-previews/eslintrc": "workspace:*",
+    "@hasura-neon-previews/tsconfig": "workspace:*",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^17.0.12",
     "@types/react": "^18.0.22",
     "@types/react-dom": "^18.0.7",
     "eslint": "7.32.0",
-    "eslint-config-custom": "workspace:*",
-    "tsconfig": "workspace:*",
-    "typescript": "^4.5.3"
+    "npm-run-all": "^4.1.5",
+    "typescript": "4.9.4"
   }
 }

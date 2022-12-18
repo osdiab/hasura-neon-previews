@@ -1,13 +1,11 @@
 {
-  "name": "web",
+  "name": "@hasura-neon-previews/hasura",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "docker compose up -d",
-    "hasura": "doppler run -- hasura"
-  },
-  "dependencies": {
-  },
-  "devDependencies": {
+    "dev": "pnpm hasura console",
+    "dev-env": "docker compose up -d",
+    "hasura": "doppler run -- hasura",
+    "setup-env": "doppler setup --no-interactive"
   }
 }

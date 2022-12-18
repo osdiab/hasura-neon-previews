@@ -8,8 +8,14 @@
     "lint": {
       "outputs": []
     },
-    "dev": {
+    "dev-env": {
+      "dependsOn": ["setup-env"],
       "cache": false
-    }
+    },
+    "dev": {
+      "dependsOn": ["setup-env", "dev-env"],
+      "cache": false
+    },
+    "setup-env": { }
   }
 }
