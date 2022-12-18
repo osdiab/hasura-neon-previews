@@ -1,0 +1,13 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up -d",
+    "hasura": "doppler run -- hasura"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
