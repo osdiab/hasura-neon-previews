@@ -9,8 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@authzed/authzed-node": "^0.10.0",
-    "graphql-request": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
     "next": "13.0.0",
     "react": "18.2.0",
