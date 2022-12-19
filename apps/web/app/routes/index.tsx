@@ -3,7 +3,7 @@
 import { UserFragment, User } from "../features/user"
 import request from 'graphql-request';
 import { graphql } from "../generated/gql";
-import { GetUsersQuery } from "../generated/gql/graphql";
+import { GetUsersQuery, GetUsersQueryVariables } from "../generated/gql/graphql";
 import { useLoaderData } from "@remix-run/react";
 
 const getUsersQuery = graphql(`
@@ -15,7 +15,7 @@ const getUsersQuery = graphql(`
 `)
 
 export async function loader() {
-  return request<GetUsersQuery>('http://localhost:8080/v1/graphql', getUsersQuery, {})
+  return request<GetUsersQuery, GetUsersQueryVariables>('http://localhost:8080/v1/graphql', getUsersQuery, {})
 }
 
 export default function Web() {

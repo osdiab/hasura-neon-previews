@@ -1,4 +1,4 @@
-import { FragmentType, graphql, useFragment } from "../generated/gql";
+import { FragmentType, graphql, getFragmentData } from "../generated/gql";
 
 export const UserFragment = graphql(`
   fragment UserDetails on auth_user {
@@ -11,7 +11,7 @@ interface UserProps {
     user: FragmentType<typeof UserFragment>
 }
 export function User(props: UserProps) {
-    const user = useFragment(UserFragment, props.user);
+    const user = getFragmentData(UserFragment, props.user);
     return <div>
         <span>{user.username}</span>
     </div>;
