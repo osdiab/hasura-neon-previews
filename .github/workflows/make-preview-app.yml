@@ -32,7 +32,7 @@ jobs:
           }')" >> $GITHUB_OUTPUT
       - name: Print result
         env:
-          RAW_OUTPUT: ${{steps.run_tests.outputs.create-branch)}}
+          RAW_OUTPUT: ${{steps.run_tests.outputs.create-branch}}
         run: echo "$RAW_OUTPUT"
       - name: Print parsed
         env:
