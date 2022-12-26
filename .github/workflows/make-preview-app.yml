@@ -1,4 +1,4 @@
-name: 'make-preview-app'
+name: Make Preview App
 on:
   pull_request:
     types: [open, reopen, synchronize]
