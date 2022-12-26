@@ -18,7 +18,7 @@ jobs:
         run: |
           curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
             --header 'accept: application/json' \
-            --header "Authorization: Bearer $NEON_API_KEY"
+            --header "Authorization: Bearer $NEON_API_KEY" | jq '.branches[] | select(.name=="main")'
       # - name: Create Neon Branch
       #   id: create-branch
       #   env:
