@@ -16,28 +16,28 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          echo "raw_output=$(curl 'https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches' \
+          curl 'https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches' \
             --header 'Accept: application/json' \
             --header 'Authorization: Bearer $NEON_API_KEY' \
             --header 'Content-Type: application/json' \
             --data '{
-            \"endpoints\": [
+            "endpoints": [
               {
                 "type": "read_write"
               }
             ],
-            \"branch\": {
+            "branch": {
               "parent_id": "$NEON_PROJECT_ID"
             }
-          }')" >> $GITHUB_OUTPUT
-      - name: Print result
-        env:
-          RAW_OUTPUT: ${{steps.run_tests.outputs.create-branch}}
-        run: echo "$RAW_OUTPUT"
-      - name: Print parsed
-        env:
-          BRANCH_DETAILS: ${{fromJson(steps.run_tests.outputs.create-branch).branch}}
-        run: echo "$BRANCH_DETAILS"
+          }'
+      # - name: Print result
+      #   env:
+      #     RAW_OUTPUT: ${{steps.run_tests.outputs.create-branch}}
+      #   run: echo "$RAW_OUTPUT"
+      # - name: Print parsed
+      #   env:
+      #     BRANCH_DETAILS: ${{fromJson(steps.run_tests.outputs.create-branch).branch}}
+      #   run: echo "$BRANCH_DETAILS"
   # preview-hasura:
   #   name: "Make Hasura Preview"
   #   runs-on: ubuntu-latest
