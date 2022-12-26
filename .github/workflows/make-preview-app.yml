@@ -16,9 +16,14 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+          echo "project_id=$(curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
             --header 'accept: application/json' \
-            --header "Authorization: Bearer $NEON_API_KEY" | jq '.branches[] | select(.name=="main").project_id'
+            --header "Authorization: Bearer $NEON_API_KEY" | jq '.branches[] | select(.name=="main").project_id'") >> $GITHUB_OUTPUT
+      - name: Print result
+        env:
+          PROJECT_ID: ${{steps.list-branches.outputs.project_id}}
+        run: echo "$PROJECT_ID"
+
 
       # - name: Create Neon Branch
       #   id: create-branch
