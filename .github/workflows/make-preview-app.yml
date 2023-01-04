@@ -10,6 +10,7 @@ jobs:
     name: "Make Neon Preview Postgres Branch"
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Get main Neon branch
         id: list-branches
         env:
@@ -38,7 +39,7 @@ jobs:
               \"endpoints\": [{ \"type\": \"read_write\" }],
               \"branch\": {
                 \"parent_id\": \"$NEON_PROJECT_ID\",
-                \"name\":\"${GITHUB_REF#refs/heads/} (SHA: $(git rev-parse --short "$GITHUB_SHA"))\"
+                \"name\":\"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
               }
             }")" >> $GITHUB_OUTPUT
       - name: Print result
