@@ -21,8 +21,8 @@ jobs:
             curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
               --header 'accept: application/json' \
               --header "Authorization: Bearer $NEON_API_KEY" \
-              | jq '.branches[] | select(.name=="main").project_id' \
-          )" >> $GITHUB_OUTPUT
+              --fail-with-body \
+              | jq '.branches[] | select(.name=="main").project_id')" >> $GITHUB_OUTPUT
 
       - name: Create Neon Branch
         id: create-branch
@@ -36,7 +36,8 @@ jobs:
             --header 'Accept: application/json' \
             --header "Authorization: Bearer $NEON_API_KEY" \
             --header 'Content-Type: application/json' \
-            --verbose
+            --fail-with-body \
+            --verbose \
             --data "{
               \"endpoints\": [{ \"type\": \"read_write\" }],
               \"branch\": {
