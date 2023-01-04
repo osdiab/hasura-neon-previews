@@ -36,7 +36,10 @@ jobs:
             --header 'Content-Type: application/json' \
             --data "{
               \"endpoints\": [{ \"type\": \"read_write\" }],
-              \"branch\": {\"parent_id\": \"$NEON_PROJECT_ID\"}
+              \"branch\": {
+                \"parent_id\": \"$NEON_PROJECT_ID\",
+                \"name\":\"${GITHUB_REF#refs/heads/} (SHA: $(git rev-parse --short "$GITHUB_SHA"))\"
+              }
             }")" >> $GITHUB_OUTPUT
       - name: Print result
         env:
