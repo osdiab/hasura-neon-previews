@@ -17,7 +17,7 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          echo "project_id=$(\
+          echo "branch_id=$(\
             curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
               --header 'accept: application/json' \
               --header "Authorization: Bearer $NEON_API_KEY" \
@@ -27,7 +27,8 @@ jobs:
       - name: Create Neon Branch
         id: create-branch
         env:
-          NEON_PROJECT_ID: ${{steps.list-branches.outputs.project_id}}
+          NEON_BRANCH_ID: ${{steps.list-branches.outputs.branch_id}}
+          NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
           echo "response=$(curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
@@ -38,7 +39,7 @@ jobs:
             --data "{
               \"endpoints\": [{ \"type\": \"read_write\" }],
               \"branch\": {
-                \"parent_id\": \"$NEON_PROJECT_ID\",
+                \"parent_id\": \"$NEON_BRANCH_ID\",
                 \"name\":\"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
               }
             }")" >> $GITHUB_OUTPUT
