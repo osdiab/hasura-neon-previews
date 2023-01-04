@@ -23,40 +23,25 @@ jobs:
               | jq '.branches[] | select(.name=="main").project_id' \
           )" >> $GITHUB_OUTPUT
 
+      - name: Create Neon Branch
+        id: create-branch
+        env:
+          NEON_PROJECT_ID: ${{steps.list-branches.outputs.project_id}}
+          NEON_API_KEY: ${{secrets.NEON_API_KEY}}
+        run: |
+          echo "response=$(curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+            --request POST \
+            --header 'Accept: application/json' \
+            --header "Authorization: Bearer $NEON_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "{
+              \"endpoints\": [{ \"type\": \"read_write\" }],
+              \"branch\": {\"parent_id\": \"$NEON_PROJECT_ID\"}
+            }")" >> $GITHUB_OUTPUT
       - name: Print result
         env:
-          PROJECT_ID: ${{steps.list-branches.outputs.project_id}}
-        run: echo "$PROJECT_ID"
-
-
-      # - name: Create Neon Branch
-      #   id: create-branch
-      #   env:
-      #     NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
-      #     NEON_API_KEY: ${{secrets.NEON_API_KEY}}
-      #   run: |
-      #     curl 'https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches' \
-      #       --header 'Accept: application/json' \
-      #       --header 'Authorization: Bearer $NEON_API_KEY' \
-      #       --header 'Content-Type: application/json' \
-      #       --data '{
-      #       "endpoints": [
-      #         {
-      #           "type": "read_write"
-      #         }
-      #       ],
-      #       "branch": {
-      #         "parent_id": "$NEON_PROJECT_ID"
-      #       }
-      #     }'
-      # - name: Print result
-      #   env:
-      #     RAW_OUTPUT: ${{steps.run_tests.outputs.create-branch}}
-      #   run: echo "$RAW_OUTPUT"
-      # - name: Print parsed
-      #   env:
-      #     BRANCH_DETAILS: ${{fromJson(steps.run_tests.outputs.create-branch).branch}}
-      #   run: echo "$BRANCH_DETAILS"
+          RAW_OUTPUT: ${{steps.create-branch.outputs.response}}
+        run: echo "$RAW_OUTPUT"
   # preview-hasura:
   #   name: "Make Hasura Preview"
   #   runs-on: ubuntu-latest
