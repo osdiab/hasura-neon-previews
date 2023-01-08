@@ -31,9 +31,31 @@ jobs:
       - name: Get Main Neon Branch
         id: get-main-branch
         run: |
-          echo "parent_branch_id=$(
-            jq --raw-output '.branches[] | select(.name=="main").id' list-branches-response.json
+          echo "branch_id=$(
+            jq --raw-output '.branches[] | select(.name=="main").id' list-neon-branches-response.json
           )" >> $GITHUB_OUTPUT
+      - name: Get Branch for this PR
+        id: get-this-pr-branch
+        run:
+          echo "branch_id=$(
+            jq --raw-output '.branches[] | select(.name | startswith("${{ github.head_ref }}")).id' list-neon-branches-response.json
+          )" >> $GITHUB_OUTPUT
+      - name: Delete existing branch for this PR
+        if: ${{ steps.get-this-pr-branch.outputs.branch_id != '' }}
+        run: |
+          curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/${{ steps.get-this-pr-branch.outputs.branch_id != '' }}" \
+            --request DELETE
+            --header 'Accept: application/json' \
+            --header "Authorization: Bearer $NEON_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --fail-with-body \
+            --output delete-neon-branch-response.json
+      - name: Upload Delete Existing Branche Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: delete-neon-branch-failure.json
+          path: delete-neon-branch-response.json
       - name: Create Neon Branch
         id: create-branch
         env:
