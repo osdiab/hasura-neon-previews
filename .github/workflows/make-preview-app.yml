@@ -46,14 +46,19 @@ jobs:
         env:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
-        run: |
-          curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/${{ steps.get-existing-branch.outputs.branch_id }}" \
-            --request DELETE \
-            --header 'Accept: application/json' \
-            --header "Authorization: Bearer $NEON_API_KEY" \
-            --header 'Content-Type: application/json' \
-            --fail-with-body \
-            --output delete-neon-branch-response.json
+        uses: nick-fields/retry@v2
+        with:
+          timeout_seconds: 1
+          max_attempts: 3
+          retry_on: error
+          command: |
+            curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches/${{ steps.get-existing-branch.outputs.branch_id }}" \
+              --request DELETE \
+              --header 'Accept: application/json' \
+              --header "Authorization: Bearer $NEON_API_KEY" \
+              --header 'Content-Type: application/json' \
+              --fail-with-body \
+              --output delete-neon-branch-response.json
       - name: Upload Delete Existing Branch Failure
         if: failure() && steps.delete-existing-branch.outcome == 'failure'
         uses: actions/upload-artifact@v3
