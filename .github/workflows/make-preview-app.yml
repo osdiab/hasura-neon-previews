@@ -23,7 +23,7 @@ jobs:
             --fail-with-body \
             --output list-neon-branches-response.json
       - name: Upload List Branches Failure
-        if: failure()
+        if: failure() || success() # TODO: only on failure
         uses: actions/upload-artifact@v3
         with:
           name: list-neon-branches-failure.json
@@ -36,7 +36,7 @@ jobs:
           )" >> $GITHUB_OUTPUT
       - name: Get Branch for this PR
         id: get-this-pr-branch
-        run:
+        run: |
           echo "branch_id=$(
             jq --raw-output '.branches[] | select(.name | startswith("${{ github.head_ref }}")).id' list-neon-branches-response.json
           )" >> $GITHUB_OUTPUT
@@ -50,8 +50,8 @@ jobs:
             --header 'Content-Type: application/json' \
             --fail-with-body \
             --output delete-neon-branch-response.json
-      - name: Upload Delete Existing Branche Failure
-        if: failure()
+      - name: Upload Delete Existing Branch Failure
+        if: failure() || success() # TODO: only on failure
         uses: actions/upload-artifact@v3
         with:
           name: delete-neon-branch-failure.json
@@ -71,12 +71,12 @@ jobs:
             --data "{
               \"endpoints\": [{ \"type\": \"read_write\" }],
               \"branch\": {
-                \"parent_id\": \"${{steps.get-main-branch.outputs.parent_branch_id}}\",
+                \"parent_id\": \"${{steps.get-main-branch.outputs.branch_id}}\",
                 \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
               }
             }"
       - name: Upload Create Branch Failure
-        if: failure()
+        if: failure() || success() # TODO: only on failure
         uses: actions/upload-artifact@v3
         with:
           name: create-neon-branch-failure.json
