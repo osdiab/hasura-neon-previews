@@ -37,24 +37,22 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          echo "response=$( \
-            curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
-              --header 'Accept: application/json' \
-              --header "Authorization: Bearer $NEON_API_KEY" \
-              --header 'Content-Type: application/json' \
-              --fail-with-body \
-              --data "{
-                \"endpoints\": [{ \"type\": \"read_write\" }],
-                \"branch\": {
-                  \"parent_id\": \"${{steps.get-main-branch.outputs.parent_branch_id}}\",
-                  \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
-                }
-              }"
-            )" >> $GITHUB_OUTPUT
+          curl "https://console.neon.tech/api/v2/projects/asdf$NEON_PROJECT_ID/branches" \
+            --header 'Accept: application/json' \
+            --header "Authorization: Bearer $NEON_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --fail-with-body \
+            --data "{
+              \"endpoints\": [{ \"type\": \"read_write\" }],
+              \"branch\": {
+                \"parent_id\": \"${{steps.get-main-branch.outputs.parent_branch_id}}\",
+                \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
+              }
+            }" >> create-branch-result.json
       - name: Print result
         env:
           RAW_OUTPUT: ${{steps.create-branch.outputs.response}}
-        run: echo "$RAW_OUTPUT"
+        run: cat create-branch-result.json
   # preview-hasura:
   #   name: "Make Hasura Preview"
   #   runs-on: ubuntu-latest
