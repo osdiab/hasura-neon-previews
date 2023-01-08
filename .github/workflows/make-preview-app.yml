@@ -7,7 +7,7 @@ on:
 
 jobs:
   delete-existing-neon-branch:
-    name: "Delete existing Neon preview postgres branch"
+    name: "Delete old Neon postgres branch"
     runs-on: ubuntu-latest
     steps:
       - name: List Neon branches
@@ -135,13 +135,12 @@ jobs:
           )" >> $GITHUB_OUTPUT
 
   preview-hasura:
-    name: "Make Hasura Preview"
+    name: Create Hasura preview
     runs-on: ubuntu-latest
     needs: [preview-neon]
     if: github.event.action != 'closed'
     steps:
       - uses: actions/checkout@v2
-      - run: echo "${{ needs.preview-neon.outputs.preview_branch_id }}"
       - uses: hasura/hasura-cloud-preview-apps@v0.1.9
         with:
           name: "hasura-neon-previews-pr-${{github.event.number}}"
@@ -153,6 +152,7 @@ jobs:
           HASURA_CLOUD_ACCESS_TOKEN: ${{secrets.HASURA_CLOUD_ACCESS_TOKEN}}
 
   delete-hasura-preview-app:
+    name: Delete Hasura preview
     runs-on: ubuntu-latest
     if: github.event.action == 'closed'
     steps:
