@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Get Neon branches
+      - name: List Neon branches
         id: list-branches
         env:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
@@ -21,7 +21,13 @@ jobs:
             --header 'accept: application/json' \
             --header "Authorization: Bearer $NEON_API_KEY" \
             --fail-with-body \
-            --output list-branches-response.json
+            --output list-neon-branches-response.json
+      - name: Upload List Branches Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: list-neon-branches-failure.json
+          path: list-neon-branches-response.json
       - name: Get Main Neon Branch
         id: get-main-branch
         run: |
@@ -39,7 +45,7 @@ jobs:
             --header "Authorization: Bearer $NEON_API_KEY" \
             --header 'Content-Type: application/json' \
             --fail-with-body \
-            --output create-branch-result.json \
+            --output create-neon-branch-response.json \
             --data "{
               \"endpoints\": [{ \"type\": \"read_write\" }],
               \"branch\": {
@@ -47,8 +53,12 @@ jobs:
                 \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
               }
             }"
-      - name: Print result
-        run: cat create-branch-result.json
+      - name: Upload Create Branch Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: create-neon-branch-failure.json
+          path: create-neon-branch-response.json
   # preview-hasura:
   #   name: "Make Hasura Preview"
   #   runs-on: ubuntu-latest
