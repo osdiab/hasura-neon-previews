@@ -17,19 +17,16 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          echo "response=$(
-            curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
-              --header 'accept: application/json' \
-              --header "Authorization: Bearer $NEON_API_KEY" \
-              --fail-with-body
-          )" >> $GITHUB_OUTPUT
+          curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+            --header 'accept: application/json' \
+            --header "Authorization: Bearer $NEON_API_KEY" \
+            --fail-with-body \
+            --output list-branches-response.json
       - name: Get Main Neon Branch
         id: get-main-branch
-        env:
-          RESPONSE: ${{steps.list-branches.outputs.response}}
         run: |
-          echo "parent_branch_id=$( \
-            echo "$RESPONSE" | jq --raw-output '.branches[] | select(.name=="main").id'
+          echo "parent_branch_id=$(
+            jq --raw-output '.branches[] | select(.name=="main").id' list-branches-response.json
           )" >> $GITHUB_OUTPUT
       - name: Create Neon Branch
         id: create-branch
@@ -37,21 +34,20 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          curl "https://console.neon.tech/api/v2/projects/asdf$NEON_PROJECT_ID/branches" \
+          curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
             --header 'Accept: application/json' \
             --header "Authorization: Bearer $NEON_API_KEY" \
             --header 'Content-Type: application/json' \
             --fail-with-body \
+            --output create-branch-result.json \
             --data "{
               \"endpoints\": [{ \"type\": \"read_write\" }],
               \"branch\": {
                 \"parent_id\": \"${{steps.get-main-branch.outputs.parent_branch_id}}\",
                 \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
               }
-            }" >> create-branch-result.json
+            }"
       - name: Print result
-        env:
-          RAW_OUTPUT: ${{steps.create-branch.outputs.response}}
         run: cat create-branch-result.json
   # preview-hasura:
   #   name: "Make Hasura Preview"
