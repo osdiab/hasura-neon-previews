@@ -24,6 +24,16 @@ jobs:
               --fail-with-body \
             | jq '.branches[] | select(.name=="main").project_id')" >> $GITHUB_OUTPUT
 
+      - name: Make artifact
+        env:
+          NEON_PARENT_BRANCH_ID: ${{steps.list-branches.outputs.parent_branch_id}}
+          NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
+        run: echo "$NEON_PARENT_BRANCH_ID ; $NEON_PROJECT_ID" > artifact.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: artifact.txt
       - name: Create Neon Branch
         id: create-branch
         env:
@@ -31,7 +41,6 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          echo "$NEON_PARENT_BRANCH_ID"
           echo "response=$(curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
             --header 'Accept: application/json' \
             --header "Authorization: Bearer $NEON_API_KEY" \
