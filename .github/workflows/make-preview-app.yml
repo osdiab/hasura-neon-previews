@@ -46,6 +46,8 @@ jobs:
         env:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
+        # due to Neon operations concurrency limit, need to retry for now
+        # https://community.neon.tech/t/project-already-has-running-operations-scheduling-of-new-ones-is-prohibited/242
         uses: nick-fields/retry@v2
         with:
           timeout_seconds: 1
