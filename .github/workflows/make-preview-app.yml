@@ -112,7 +112,7 @@ jobs:
                 \"endpoints\": [{ \"type\": \"read_write\" }],
                 \"branch\": {
                   \"parent_id\": \"${{steps.get-main-branch.outputs.branch_id}}\",
-                  \"name\": \"${{ github.event.number }} (${{ github.head_ref }} SHA: ${{ github.sha }})\"
+                  \"name\": \"#${{ github.event.number }} (${{ github.head_ref }} SHA: ${{ github.sha }})\"
                 }
               }"
       - name: Upload create branch failure
