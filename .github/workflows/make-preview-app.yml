@@ -22,18 +22,7 @@ jobs:
               --header 'accept: application/json' \
               --header "Authorization: Bearer $NEON_API_KEY" \
               --fail-with-body \
-            | jq '.branches[] | select(.name=="main").project_id')" >> $GITHUB_OUTPUT
-
-      - name: Make artifact
-        env:
-          NEON_PARENT_BRANCH_ID: ${{steps.list-branches.outputs.parent_branch_id}}
-          NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
-        run: echo "$NEON_PARENT_BRANCH_ID ; $NEON_PROJECT_ID" > artifact.txt
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: my-artifact
-          path: artifact.txt
+            | jq --raw-output '.branches[] | select(.name=="main").id')" >> $GITHUB_OUTPUT
       - name: Create Neon Branch
         id: create-branch
         env:
