@@ -143,16 +143,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: echo "${{ needs.preview-neon.outputs.preview_branch_id }}"
-      # - uses: hasura/hasura-cloud-preview-apps@v0.1.7
-      #   with:
-      #     name: "hasura-neon-previews-pr-${{github.event.number}}" # name of the preview app to created
-      #     hasuraProjectDirectoryPath: apps/hasura # path to the Hasura project directory in the repo
-      #     hasuraEnv: | # env vars exposed to the Hasura instance
-      #      	HASURA_GRAPHQL_CORS_DOMAINS=http://my-site.com
-      #      	PG_DATABASE_URL=${{secrets.PG_STRING}}
-      #     postgresDBConfig: |
-      #       POSTGRES_SERVER_CONNECTION_URI=${{secrets.PG_STRING}}
-      #       PG_ENV_VARS_FOR_HASURA=PG_DB_URL_1,PG_DB_URL_2
-      #   env:
-      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}} # ${{ secrets.GITHUB_TOKEN }} is provided by default by GitHub actions
-      #     HASURA_CLOUD_ACCESS_TOKEN: ${{secrets.HASURA_CLOUD_ACCESS_TOKEN}} # Hasura Cloud access token to contact Hasura Cloud APIs
+      - uses: hasura/hasura-cloud-preview-apps@v0.1.7
+        with:
+          name: "hasura-neon-previews-pr-${{github.event.number}}"
+          hasuraProjectDirectoryPath: apps/hasura
+          hasuraEnv: |
+            DATABASE_URL=${{secrets.APP_DB_USER}}:${{secrets.APP_DB_PASSWORD}}@${{needs.preview-neon.outputs.preview_branch_id}}/${{secrets.APP_DB_NAME}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          HASURA_CLOUD_ACCESS_TOKEN: ${{secrets.HASURA_CLOUD_ACCESS_TOKEN}}
+
+  delete-hasura-preview-app:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hasura/hasura-cloud-preview-apps@v0.1.7
+        with:
+          name: "hasura-neon-previews-pr-${{github.event.number}}"
+          delete: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          HASURA_CLOUD_ACCESS_TOKEN: ${{secrets.HASURA_CLOUD_ACCESS_TOKEN}}
