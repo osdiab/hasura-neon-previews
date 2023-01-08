@@ -1,16 +1,15 @@
 name: Make Preview App
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, closed]
     branches:
       - main
 
 jobs:
-  preview-neon:
-    name: "Make Neon Preview Postgres Branch"
+  delete-existing-neon-branch:
+    name: "Delete existing Neon preview postgres branch"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: List Neon branches
         id: list-branches
         env:
@@ -22,7 +21,7 @@ jobs:
             --header "Authorization: Bearer $NEON_API_KEY" \
             --fail-with-body \
             --output list-neon-branches-response.json
-      - name: Upload List Branches Failure
+      - name: Upload list branches failure
         if: failure() && steps.list-branches.outcome == 'failure'
         uses: actions/upload-artifact@v3
         with:
@@ -61,13 +60,45 @@ jobs:
               --header 'Content-Type: application/json' \
               --fail-with-body \
               --output delete-neon-branch-response.json
-      - name: Upload Delete Existing Branch Failure
+      - name: Upload existing branch deletion failure
         if: failure() && steps.delete-existing-branch.outcome == 'failure'
         uses: actions/upload-artifact@v3
         with:
           name: delete-neon-branch-failure.json
           path: delete-neon-branch-response.json
-      - name: Create Neon Branch
+
+  preview-neon:
+    if: github.event.action != 'closed'
+    name: "Make Neon preview postgres branch"
+    runs-on: ubuntu-latest
+    needs: delete-existing-neon-branch
+    outputs:
+      preview_branch_id: ${{ steps.parse-preview-branch-id.outputs.branch_id}}
+    steps:
+      - name: List Neon branches
+        id: list-branches
+        env:
+          NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
+          NEON_API_KEY: ${{secrets.NEON_API_KEY}}
+        run: |
+          curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+            --header 'accept: application/json' \
+            --header "Authorization: Bearer $NEON_API_KEY" \
+            --fail-with-body \
+            --output list-neon-branches-response.json
+      - name: Upload list branches failure
+        if: failure() && steps.list-branches.outcome == 'failure'
+        uses: actions/upload-artifact@v3
+        with:
+          name: list-neon-branches-failure.json
+          path: list-neon-branches-response.json
+      - name: Get main Neon branch
+        id: get-main-branch
+        run: |
+          echo "branch_id=$(
+            jq --raw-output '.branches[] | select(.name=="main").id' list-neon-branches-response.json
+          )" >> $GITHUB_OUTPUT
+      - name: Create Neon branch
         id: create-branch
         env:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
@@ -91,28 +122,37 @@ jobs:
                   \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
                 }
               }"
-      - name: Upload Create Branch Failure
+      - name: Upload create branch failure
         if: failure() && steps.create-branch.outcome == 'failure'
         uses: actions/upload-artifact@v3
         with:
           name: create-neon-branch-failure.json
           path: create-neon-branch-response.json
-  # preview-hasura:
-  #   name: "Make Hasura Preview"
-  #   runs-on: ubuntu-latest
-  #   needs: [preview-neon]
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - uses: hasura/hasura-cloud-preview-apps@v0.1.7
-  #       with:
-  #         name: "hasura-neon-previews-pr-${{github.event.number}}" # name of the preview app to created
-  #         hasuraProjectDirectoryPath: apps/hasura # path to the Hasura project directory in the repo
-  #         hasuraEnv: | # env vars exposed to the Hasura instance
-  #          	HASURA_GRAPHQL_CORS_DOMAINS=http://my-site.com
-  #          	PG_DATABASE_URL=${{secrets.PG_STRING}}
-  #         postgresDBConfig: |
-  #           POSTGRES_SERVER_CONNECTION_URI=${{secrets.PG_STRING}}
-  #           PG_ENV_VARS_FOR_HASURA=PG_DB_URL_1,PG_DB_URL_2
-  #       env:
-  #         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}} # ${{ secrets.GITHUB_TOKEN }} is provided by default by GitHub actions
-  #         HASURA_CLOUD_ACCESS_TOKEN: ${{secrets.HASURA_CLOUD_ACCESS_TOKEN}} # Hasura Cloud access token to contact Hasura Cloud APIs
+      - name: Output preview Neon branch endpoint
+        id: parse-preview-branch-id
+        run: |
+          echo "branch_id=$(
+            jq --raw-output '.endpoints[0].host' create-neon-branch-response.json
+          )" >> $GITHUB_OUTPUT
+
+  preview-hasura:
+    name: "Make Hasura Preview"
+    runs-on: ubuntu-latest
+    needs: [preview-neon]
+    if: github.event.action != 'closed'
+    steps:
+      - uses: actions/checkout@v2
+      - run: echo "${{ needs.preview-neon.outputs.preview_branch_id }}"
+      # - uses: hasura/hasura-cloud-preview-apps@v0.1.7
+      #   with:
+      #     name: "hasura-neon-previews-pr-${{github.event.number}}" # name of the preview app to created
+      #     hasuraProjectDirectoryPath: apps/hasura # path to the Hasura project directory in the repo
+      #     hasuraEnv: | # env vars exposed to the Hasura instance
+      #      	HASURA_GRAPHQL_CORS_DOMAINS=http://my-site.com
+      #      	PG_DATABASE_URL=${{secrets.PG_STRING}}
+      #     postgresDBConfig: |
+      #       POSTGRES_SERVER_CONNECTION_URI=${{secrets.PG_STRING}}
+      #       PG_ENV_VARS_FOR_HASURA=PG_DB_URL_1,PG_DB_URL_2
+      #   env:
+      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}} # ${{ secrets.GITHUB_TOKEN }} is provided by default by GitHub actions
+      #     HASURA_CLOUD_ACCESS_TOKEN: ${{secrets.HASURA_CLOUD_ACCESS_TOKEN}} # Hasura Cloud access token to contact Hasura Cloud APIs
