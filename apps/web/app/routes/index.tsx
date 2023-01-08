@@ -23,7 +23,7 @@ export default function Web() {
 
   return (
     <div>
-      <h1>Users</h1>
+      <h1>Existent Users</h1>
       {data?.auth_user.map(user => <User key={user.id} user={user} />)}
     </div>
   );
