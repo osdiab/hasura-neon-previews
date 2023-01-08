@@ -17,34 +17,40 @@ jobs:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          echo "branches_response=$(\
+          echo "response=$(
             curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
               --header 'accept: application/json' \
               --header "Authorization: Bearer $NEON_API_KEY" \
-              --fail-with-body" \
-            )" >> $GITHUB_OUTPUT
+              --fail-with-body
+          )" >> $GITHUB_OUTPUT
       - name: Get Main Neon Branch
         id: get-main-branch
+        env:
+          RESPONSE: ${{steps.list-branches.outputs.response}}
         run: |
           echo "parent_branch_id=$( \
-            echo "${{steps.list-branches.outputs.branches_response}}" | \
-              jq --raw-output '.branches[] | select(.name=="main").id' \
-            )" >> $GITHUB_OUTPUT
+            echo "$RESPONSE" | jq --raw-output '.branches[] | select(.name=="main").id'
+          )" >> $GITHUB_OUTPUT
       - name: Create Neon Branch
         id: create-branch
         env:
           NEON_PROJECT_ID: ${{secrets.NEON_PROJECT_ID}}
           NEON_API_KEY: ${{secrets.NEON_API_KEY}}
         run: |
-          echo "response=$(curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
-            --header 'Accept: application/json' \
-            --header "Authorization: Bearer $NEON_API_KEY" \
-            --header 'Content-Type: application/json' \
-            --fail-with-body \
-            --data "{
-              \"endpoints\": [{ \"type\": \"read_write\" }],
-              \"branch\": { \"parent_id\": \"${{steps.get-main-branch.outputs.parent_branch_id}}\", \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\" }
-            }")" >> $GITHUB_OUTPUT
+          echo "response=$( \
+            curl "https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches" \
+              --header 'Accept: application/json' \
+              --header "Authorization: Bearer $NEON_API_KEY" \
+              --header 'Content-Type: application/json' \
+              --fail-with-body \
+              --data "{
+                \"endpoints\": [{ \"type\": \"read_write\" }],
+                \"branch\": {
+                  \"parent_id\": \"${{steps.get-main-branch.outputs.parent_branch_id}}\",
+                  \"name\": \"${{ github.head_ref }} (SHA: ${{ github.sha }})\"
+                }
+              }"
+            )" >> $GITHUB_OUTPUT
       - name: Print result
         env:
           RAW_OUTPUT: ${{steps.create-branch.outputs.response}}
